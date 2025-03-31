@@ -1,5 +1,4 @@
-const qrcode = require('qrcode-terminal');
-const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
+const { Client, GatewayIntentBits } = require('discord.js');
 const fs= require('fs')
 // const puppeteer = require('puppeteer');
 const puppeteer = require('puppeteer-extra')
@@ -7,25 +6,13 @@ const puppeteer = require('puppeteer-extra')
 // add stealth plugin and use defaults (all evasion techniques)
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
-// const client = new Client({
-//     authStrategy: new LocalAuth(),
-//     webVersion: '2.2412.50',
-//     puppeteer: { headless: true },
-//     // ffmpegPath: '../ffmpeg.exe',
-//     puppeteer: {headless: true,
-//         args: ['--no-sandbox'],
-//         executablePath:'/usr/bin/google-chrome-stable'
-//     }
-// });
-
 
 const client = new Client({
-    authStrategy: new LocalAuth(),
-    puppeteer: { headless: true },
-    ffmpegPath: '../ffmpeg.exe',
-    puppeteer: {
-      executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-  }
+    intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.MessageContent
+    ]
 });
 
 
@@ -78,49 +65,48 @@ async function startServer() {
 
 
 
-client.on('qr', qr => {
-    qrcode.generate(qr, {small: true});
-});
-
 client.on('ready', () => {
-    console.log('Client is ready!');
+    console.log(`Logged in as ${client.user.tag}!`);
 });
-client.initialize();
 
-client.on('message', async (msg) => {
+client.on('messageCreate', async (message) => {
+    if (message.author.bot) return;
+    if (!message.guild) return;
 
-    
-    const chat = await msg.getChat(); 
-    if(msg.body === `/status`){
-        try{
-            initializeBrowser("https://aternos.org/server/")
-
-            checkServerStatus("https://aternos.org/server/")
-            let servstat = await checkServerStatus()
-            // console.log(servstat)
-            msg.reply(`Server Status: ${servstat}`)
-        }catch(e){
-            console.log(e)
-        }    
-    }
-    if(msg.body === `/start`){
-        try{
-            //if status==online{
-                // break
-            //}
-            if(await checkServerStatus()==="Online"){
-                msg.reply("Server already started")
-                throw new Error("server already started");
-            }else if(await checkServerStatus()==="Offline"){
-                startServer()
-                msg.reply("Starting server ...")
-            }else{
-                msg.reply("Server already started")
+    if (message.content === '/status') {
+        try {
+            await initializeBrowser('https://aternos.org/server/');
+            const status = await checkServerStatus();
+            if (status) {
+                message.reply(`Server Status: **${status}**`);
+            } else {
+                message.reply('Could not determine the server status.');
             }
-
-        }catch(e){
-            console.log(e)
-        }    
+        } catch (e) {
+            console.error(e);
+            message.reply('Error while checking server status.');
+        }
     }
-    
-});    
+
+    if (message.content === '/start') {
+        try {
+            await initializeBrowser('https://aternos.org/server/');
+
+            const status = await checkServerStatus();
+            if (status === 'Online') {
+                message.reply('Server is already online.');
+            } else if (status === 'Offline') {
+                await startServer();
+                message.reply('Starting server...');
+            } else {
+                message.reply(`Current status: ${status}.`);
+            }
+        } catch (e) {
+            console.error(e);
+            message.reply('Error while trying to start the server.');
+        }
+    }
+});
+
+
+client.login('YOUR BOT TOKEN');

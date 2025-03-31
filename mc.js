@@ -7,26 +7,26 @@ const puppeteer = require('puppeteer-extra')
 // add stealth plugin and use defaults (all evasion techniques)
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
-const client = new Client({
-    authStrategy: new LocalAuth(),
-    webVersion: '2.2412.50',
-    puppeteer: { headless: true },
-    // ffmpegPath: '../ffmpeg.exe',
-    puppeteer: {headless: true,
-        args: ['--no-sandbox'],
-        executablePath:'/usr/bin/google-chrome-stable'
-    }
-});
-
-
 // const client = new Client({
 //     authStrategy: new LocalAuth(),
+//     webVersion: '2.2412.50',
 //     puppeteer: { headless: true },
-//     ffmpegPath: '../ffmpeg.exe',
-//     puppeteer: {
-//       executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-//   }
+//     // ffmpegPath: '../ffmpeg.exe',
+//     puppeteer: {headless: true,
+//         args: ['--no-sandbox'],
+//         executablePath:'/usr/bin/google-chrome-stable'
+//     }
 // });
+
+
+const client = new Client({
+    authStrategy: new LocalAuth(),
+    puppeteer: { headless: true },
+    ffmpegPath: '../ffmpeg.exe',
+    puppeteer: {
+      executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+  }
+});
 
 
 let browser;
